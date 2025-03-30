@@ -1,16 +1,45 @@
-import { createSlice } from '@reduxjs/toolkit';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addItem, updateQuantity, removeItem } from './CartSlice';
 
-const cartSlice = createSlice({
-    name: 'cart',
-    initialState: { items: [] },
-    reducers: {
-        addItem: (state, action) => {
-            state.items.push(action.payload); // Add product to cart
-        },
-    },
-});
+const CartItem = ({ onContinueShopping }) => {
+  const dispatch = useDispatch();
+  const cart = useSelector(state => state.cart.items);
 
-return (
+  // Calculate total amount for all items
+  const calculateTotalAmount = () => {
+    return cart.reduce((total, item) => {
+      const itemCost = parseFloat(item.cost.substring(1));
+      return total + item.quantity * itemCost;
+    }, 0).toFixed(2);
+  };
+
+  // Calculate the subtotal for a single item
+  const calculateTotalCost = (item) => {
+    const itemCost = parseFloat(item.cost.substring(1));
+    return (item.quantity * itemCost).toFixed(2);
+  };
+
+  // Handle incrementing item quantity
+  const handleIncrement = (item) => {
+    dispatch(addItem({ name: item.name, image: item.image, cost: item.cost }));
+  };
+
+  // Handle decrementing item quantity
+  const handleDecrement = (item) => {
+    if (item.quantity > 1) {
+      dispatch(updateQuantity({ name: item.name, quantity: item.quantity - 1 }));
+    } else {
+      dispatch(removeItem(item.name));
+    }
+  };
+
+  // Handle removing an item from the cart
+  const handleRemove = (item) => {
+    dispatch(removeItem(item.name));
+  };
+
+  return (
     <div className="cart-container">
       <h2 style={{ color: 'black' }}>Total Cart Amount: ${calculateTotalAmount()}</h2>
       <div>
@@ -32,12 +61,12 @@ return (
         ))}
       </div>
       <div className="continue_shopping_btn">
-        <button className="get-started-button" onClick={handleContinueShopping}>Continue Shopping</button>
+        <button className="get-started-button" onClick={onContinueShopping}>Continue Shopping</button>
         <br />
         <button className="get-started-button1" onClick={() => alert('Functionality to be added for future reference')}>Checkout</button>
       </div>
     </div>
   );
+};
 
-export const { addItem } = cartSlice.actions;
-export default cartSlice.reducer;
+export default CartItem;
